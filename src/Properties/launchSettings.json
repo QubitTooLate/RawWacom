@@ -1,0 +1,9 @@
+{
+    "profiles": {
+        "Qtl.RawWacom": {
+            "commandName": "Project",
+            "nativeDebugging": true,
+            "hotReloadEnabled": false
+        }
+    }
+}

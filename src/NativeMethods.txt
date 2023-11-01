@@ -20,3 +20,13 @@ CreateEvent
 GetSystemMetrics
 
 mouse_event
+
+GetCurrentProcessId
+
+OpenProcess
+
+SetPriorityClass
+
+SetProcessInformation
+
+PROCESS_POWER_THROTTLING_STATE
