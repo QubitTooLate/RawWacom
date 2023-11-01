@@ -5,7 +5,7 @@ using Windows.Win32.UI.Input;
 
 namespace RawInput;
 
-internal class WacomTabletDevice : DeviceFile
+internal sealed class WacomTabletDevice : DeviceFile
 {
     public static WacomTabletDevice GetWacomTabletDevice()
     {
@@ -60,7 +60,7 @@ internal class WacomTabletDevice : DeviceFile
         }
     }
 
-    protected WacomTabletDevice(HANDLE fileHandle, HANDLE eventHandle) : base(fileHandle, eventHandle) 
+    private WacomTabletDevice(HANDLE fileHandle, HANDLE eventHandle) : base(fileHandle, eventHandle) 
     {
 
     }

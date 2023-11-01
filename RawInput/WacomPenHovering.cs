@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 10)]
-struct WacomPenHovering
+internal struct WacomPenHovering
 {
     [FieldOffset(8)] public WacomPenHoveringState PenHoveringState;
     [FieldOffset(6)] public short X;

@@ -2,9 +2,9 @@
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input;
 
-class RawInputDevices
+internal static class RawInputDevices
 {
-    internal static unsafe int GetRawInputDeviceCount()
+    public static unsafe int GetRawInputDeviceCount()
     {
         var count = 0;
         _ = Native.GetRawInputDeviceList(
@@ -15,7 +15,7 @@ class RawInputDevices
         return count;
     }
 
-    internal static unsafe int GetRawInputDevices(Span<RAWINPUTDEVICELIST> rawInputDevices)
+    public static unsafe int GetRawInputDevices(Span<RAWINPUTDEVICELIST> rawInputDevices)
     {
         var count = rawInputDevices.Length;
         fixed (RAWINPUTDEVICELIST* rawInputDevicesPtr = rawInputDevices)
@@ -28,7 +28,7 @@ class RawInputDevices
         }
     }
 
-    internal static Span<RAWINPUTDEVICELIST> GetRawInputDevices()
+    public static Span<RAWINPUTDEVICELIST> GetRawInputDevices()
     {
         var count = GetRawInputDeviceCount();
         var rawInputDevices = new RAWINPUTDEVICELIST[count].AsSpan();
@@ -36,7 +36,7 @@ class RawInputDevices
         return rawInputDevices[..count];
     }
 
-    internal static unsafe string GetRawInputDeviceName(HANDLE handle)
+    public static unsafe string GetRawInputDeviceName(HANDLE handle)
     {
         var bufferLength = 128;
         var buffer = stackalloc char[bufferLength];

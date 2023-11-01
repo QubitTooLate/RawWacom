@@ -1,25 +1,4 @@
 ﻿
-GetMessage
-PeekMessage
-
-WM_HOTKEY
-WM_QUIT
-
-RegisterRawInputDevices
-GetRawInputData
-
-RegisterClassEx
-CreateWindowEx
-
-HWND_MESSAGE
-
-DispatchMessage
-DefWindowProc
-
-WM_INPUT
-RAWINPUTHEADER
-RAWINPUT
-
 GetRawInputDeviceList
 
 GetRawInputDeviceInfo
@@ -37,8 +16,6 @@ WaitForSingleObject
 GetOverlappedResult
 
 CreateEvent
-
-SetCursorPos
 
 GetSystemMetrics
 

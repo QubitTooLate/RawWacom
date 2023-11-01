@@ -1,4 +1,5 @@
-﻿enum WacomPenHoveringState : byte
+﻿
+internal enum WacomPenHoveringState : byte
 {
     Nothing = 0,
     HoveringFar = 32,
