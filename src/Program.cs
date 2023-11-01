@@ -1,4 +1,7 @@
-﻿using Qtl.RawWacom;
+﻿
+// TODO: add tablet buttons
+
+using Qtl.RawWacom;
 using Qtl.RawWacom.DataTypes;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
@@ -6,41 +9,43 @@ using Windows.Win32.UI.Input.KeyboardAndMouse;
 using var process = new Process();
 process.SetEfficiencyMode();
 
-using var wacomDevice = WacomTabletDevice.GetWacomTabletDevice();
-var wacomState = new WacomState();
+using var wacomPenDevice = WacomTabletDevice.GetWacomTabletDevice(1);
+var wacomPenState = new WacomPenState();
 
 var message = default(WacomMessage);
-while (wacomDevice.TryReadMessage(ref message))
+while (wacomPenDevice.TryReadMessage(ref message))
 {
-    wacomState.MessageUpdate(ref message);
+	wacomPenState.MessageUpdate(ref message);
 
-    if (message.MessageType is WacomMessageType.PenHovering)
-    {
-        Native.mouse_event(
-            MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE |
-            MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE |
-            (wacomState.PenIsTouchingChanged ?
-                (wacomState.PenIsTouching ?
-                    MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTDOWN :
-                    MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTUP
-                ) :
-            default) |
-            (wacomState.PenButton0StateChanged ?
-                (wacomState.PenButton0State ?
-                    MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTDOWN :
-                    MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTUP
-                ) :
-            default) |
-            (wacomState.PenButton1StateChanged ?
-                (wacomState.PenButton1State ?
-                    MOUSE_EVENT_FLAGS.MOUSEEVENTF_MIDDLEDOWN :
-                    MOUSE_EVENT_FLAGS.MOUSEEVENTF_MIDDLEUP
-                ) :
-            default),
-            (int)(wacomState.Position.X * ushort.MaxValue),
-            (int)(wacomState.Position.Y * ushort.MaxValue),
-            0,
-            0
-        );
-    }
+	if (message.MessageType is WacomMessageType.PenHovering)
+	{
+		//Native.SendInput();
+
+		Native.mouse_event(
+			MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE |
+			MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE |
+			(wacomPenState.PenIsTouchingChanged ?
+				(wacomPenState.PenIsTouching ?
+					MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTDOWN :
+					MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTUP
+				) :
+			default) |
+			(wacomPenState.PenButton0StateChanged ?
+				(wacomPenState.PenButton0State ?
+					MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTDOWN :
+					MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTUP
+				) :
+			default) |
+			(wacomPenState.PenButton1StateChanged ?
+				(wacomPenState.PenButton1State ?
+					MOUSE_EVENT_FLAGS.MOUSEEVENTF_MIDDLEDOWN :
+					MOUSE_EVENT_FLAGS.MOUSEEVENTF_MIDDLEUP
+				) :
+			default),
+			(int)(wacomPenState.Position.X * ushort.MaxValue),
+			(int)(wacomPenState.Position.Y * ushort.MaxValue),
+			0,
+			0
+		);
+	}
 }
