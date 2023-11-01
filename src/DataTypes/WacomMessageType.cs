@@ -1,4 +1,5 @@
-﻿
+﻿namespace Qtl.RawWacom.DataTypes;
+
 internal enum WacomMessageType : byte
 {
     PenHovering = 16,

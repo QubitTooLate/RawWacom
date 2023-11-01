@@ -1,6 +1,9 @@
 ﻿using System.Numerics;
+using Qtl.RawWacom.DataTypes;
 using Windows.Win32;
 using Windows.Win32.UI.WindowsAndMessaging;
+
+namespace Qtl.RawWacom;
 
 internal sealed class WacomState
 {

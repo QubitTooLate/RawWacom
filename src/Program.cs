@@ -1,4 +1,6 @@
-﻿using RawInput;
+﻿using System;
+using Qtl.RawWacom;
+using Qtl.RawWacom.DataTypes;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 

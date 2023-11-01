@@ -1,5 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 
+namespace Qtl.RawWacom.DataTypes;
+
 [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 10)]
 internal struct WacomPenHovering
 {

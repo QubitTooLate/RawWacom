@@ -1,9 +1,11 @@
-﻿using Windows.Win32;
+﻿using System;
+using Qtl.RawWacom.DataTypes;
+using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.UI.Input;
 
-namespace RawInput;
+namespace Qtl.RawWacom;
 
 internal sealed class WacomTabletDevice : DeviceFile
 {

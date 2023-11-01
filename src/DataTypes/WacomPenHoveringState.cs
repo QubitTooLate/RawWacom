@@ -1,4 +1,5 @@
-﻿
+﻿namespace Qtl.RawWacom.DataTypes;
+
 internal enum WacomPenHoveringState : byte
 {
     Nothing = 0,
