@@ -17,35 +17,49 @@ while (wacomPenDevice.TryReadMessage(ref message))
 {
 	wacomPenState.MessageUpdate(ref message);
 
-	if (message.MessageType is WacomMessageType.PenHovering)
+	if (message.MessageType is not WacomMessageType.PenHovering)
 	{
-		//Native.SendInput();
-
-		Native.mouse_event(
-			MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE |
-			MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE |
-			(wacomPenState.PenIsTouchingChanged ?
-				(wacomPenState.PenIsTouching ?
-					MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTDOWN :
-					MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTUP
-				) :
-			default) |
-			(wacomPenState.PenButton0StateChanged ?
-				(wacomPenState.PenButton0State ?
-					MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTDOWN :
-					MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTUP
-				) :
-			default) |
-			(wacomPenState.PenButton1StateChanged ?
-				(wacomPenState.PenButton1State ?
-					MOUSE_EVENT_FLAGS.MOUSEEVENTF_MIDDLEDOWN :
-					MOUSE_EVENT_FLAGS.MOUSEEVENTF_MIDDLEUP
-				) :
-			default),
-			(int)(wacomPenState.Position.X * ushort.MaxValue),
-			(int)(wacomPenState.Position.Y * ushort.MaxValue),
-			0,
-			0
-		);
+		continue;
 	}
+
+	SendMouseInput(wacomPenState);
+}
+
+static unsafe void SendMouseInput(WacomPenState penState)
+{
+	var input = new INPUT
+	{
+		type = INPUT_TYPE.INPUT_MOUSE,
+		Anonymous = new INPUT._Anonymous_e__Union
+		{
+			mi = new MOUSEINPUT
+			{
+				dx = (int)(penState.Position.X * ushort.MaxValue),
+				dy = (int)(penState.Position.Y * ushort.MaxValue),
+				dwFlags =
+					MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE |
+					MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE |
+					(penState.PenIsTouchingChanged ?
+						(penState.PenIsTouching ?
+							MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTDOWN :
+							MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTUP
+						) :
+					default) |
+					(penState.PenButton0StateChanged ?
+						(penState.PenButton0State ?
+							MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTDOWN :
+							MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTUP
+						) :
+					default) |
+					(penState.PenButton1StateChanged ?
+						(penState.PenButton1State ?
+							MOUSE_EVENT_FLAGS.MOUSEEVENTF_MIDDLEDOWN :
+							MOUSE_EVENT_FLAGS.MOUSEEVENTF_MIDDLEUP
+						) :
+					default)
+			}
+		}
+	};
+
+	_ = Native.SendInput(1, &input, sizeof(INPUT));
 }
