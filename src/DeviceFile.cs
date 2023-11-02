@@ -1,70 +1,34 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using System.Threading;
+﻿using System.IO;
+using Microsoft.Win32.SafeHandles;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Storage.FileSystem;
 
 namespace Qtl.RawWacom;
 
-internal class DeviceFile : IDisposable
+public static class DeviceFile
 {
-	protected readonly HANDLE _fileHandle;
-	protected readonly HANDLE _eventHandle;
-
-	protected DeviceFile(HANDLE fileHandle, HANDLE eventHandle)
+	public static unsafe FileStream OpenRead(string deviceName)
 	{
-		_fileHandle = fileHandle;
-		_eventHandle = eventHandle;
-	}
+		const uint GENERIC_READ = 0x80000000;
 
-	protected unsafe bool TryRead(byte* buffer, int* length)
-	{
-		const int ERROR_IO_PENDING = 997;
-
-		var overlapped = default(NativeOverlapped);
-		overlapped.EventHandle = _eventHandle;
-		if (!Native.ReadFile(
-			_fileHandle,
-			buffer,
-			(uint)*length,
-			(uint*)length,
-			&overlapped
-		))
+		fixed (char* deviceNamePtr = deviceName)
 		{
-			var lastError = Marshal.GetLastWin32Error();
-			if (lastError is ERROR_IO_PENDING)
-			{
-				var waitResult = Native.WaitForSingleObject((HANDLE)overlapped.EventHandle, uint.MaxValue);
-				if (waitResult is WAIT_EVENT.WAIT_OBJECT_0)
-				{
-					if (Native.GetOverlappedResult(_fileHandle, &overlapped, (uint*)length, true))
-					{
-						return true;
-					}
+			var fileHandle = Native.CreateFile(
+				deviceNamePtr,
+				GENERIC_READ,
+				FILE_SHARE_MODE.FILE_SHARE_NONE,
+				null,
+				FILE_CREATION_DISPOSITION.OPEN_EXISTING,
+				FILE_FLAGS_AND_ATTRIBUTES.FILE_ATTRIBUTE_DEVICE |
+				FILE_FLAGS_AND_ATTRIBUTES.FILE_FLAG_OVERLAPPED,
+				HANDLE.Null
+			);
 
-					Console.WriteLine($"Uncatched overlappedResult error {Marshal.GetLastWin32Error()}");
-				}
-				else
-				{
-					Console.WriteLine($"Uncatched wait result {waitResult}");
-				}
-			}
-			else
-			{
-				Console.WriteLine($"Uncatched last error: {lastError}");
-			}
+			return new FileStream(
+				new SafeFileHandle(fileHandle, true),
+				FileAccess.Read
+			);
 		}
-		else
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	public void Dispose()
-	{
-		Native.CloseHandle(_fileHandle);
-		Native.CloseHandle(_eventHandle);
 	}
 }

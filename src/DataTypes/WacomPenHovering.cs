@@ -3,7 +3,7 @@
 namespace Qtl.RawWacom.DataTypes;
 
 [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 10)]
-internal struct WacomPenHovering
+public struct WacomPenHovering
 {
 	[FieldOffset(8)] public WacomPenHoveringState PenHoveringState;
 	[FieldOffset(6)] public short X;

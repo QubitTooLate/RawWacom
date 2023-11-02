@@ -1,15 +1,15 @@
 ﻿using System;
+using System.IO;
 using Qtl.RawWacom.DataTypes;
-using Windows.Win32;
-using Windows.Win32.Foundation;
-using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.UI.Input;
 
 namespace Qtl.RawWacom;
 
-internal sealed class WacomTabletDevice : DeviceFile
+public sealed class WacomTabletDevice : IDisposable
 {
-	public static WacomTabletDevice GetWacomTabletDevice(int index)
+	private const int ERROR_DEVICE_NOT_CONNECTED = -2147023729;
+
+	public static unsafe WacomTabletDevice GetWacomTabletDevice(int index)
 	{
 		var rawInputDevices = RawInputDevices.GetRawInputDevices();
 		var wacomIndex = 0;
@@ -23,7 +23,8 @@ internal sealed class WacomTabletDevice : DeviceFile
 				{
 					if (wacomIndex == index)
 					{
-						return CreateDeviceFile(deviceName);
+						var deviceFileStream = DeviceFile.OpenRead(deviceName);
+						return new(deviceFileStream);
 					}
 
 					wacomIndex++;
@@ -31,50 +32,39 @@ internal sealed class WacomTabletDevice : DeviceFile
 			}
 		}
 
-		throw new Exception("Wacom device not found.");
+		throw new IOException("The device is not connected.", ERROR_DEVICE_NOT_CONNECTED);
 	}
 
-	private static unsafe WacomTabletDevice CreateDeviceFile(string deviceName)
+	private readonly FileStream _fileStream;
+
+	public WacomTabletDevice(FileStream fileStream)
 	{
-		const uint GENERIC_READ = 0x80000000;
-
-		fixed (char* deviceNamePtr = deviceName)
-		{
-			var fileHandle = Native.CreateFile(
-				deviceNamePtr,
-				GENERIC_READ,
-				FILE_SHARE_MODE.FILE_SHARE_NONE,
-				null,
-				FILE_CREATION_DISPOSITION.OPEN_EXISTING,
-				FILE_FLAGS_AND_ATTRIBUTES.FILE_ATTRIBUTE_DEVICE | FILE_FLAGS_AND_ATTRIBUTES.FILE_FLAG_OVERLAPPED,
-				HANDLE.Null
-			);
-
-			var eventHandle = Native.CreateEvent(
-				null,
-				true,
-				false,
-				default(PCWSTR)
-			);
-
-			return new(fileHandle, eventHandle);
-		}
-	}
-
-	private WacomTabletDevice(HANDLE fileHandle, HANDLE eventHandle) : base(fileHandle, eventHandle)
-	{
-
+		_fileStream = fileStream;
 	}
 
 	public unsafe bool TryReadMessage(ref WacomMessage message)
 	{
 		var length = 10;
 		var messageBuffer = stackalloc byte[length];
-		if (!TryRead(messageBuffer, &length)) { return false; }
+		var messageSpan = new Span<byte>(messageBuffer, length);
 
-		new Span<byte>(messageBuffer, length).Reverse();
+		try
+		{
+			_fileStream.ReadExactly(messageSpan);
+		}
+		catch (IOException e) when (e.HResult is ERROR_DEVICE_NOT_CONNECTED)
+		{
+			return false;
+		}
+
+		messageSpan.Reverse();
 
 		message = *(WacomMessage*)messageBuffer;
 		return true;
+	}
+
+	public void Dispose()
+	{
+		_fileStream.Dispose();
 	}
 }

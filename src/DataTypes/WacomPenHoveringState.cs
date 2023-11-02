@@ -1,6 +1,6 @@
 ﻿namespace Qtl.RawWacom.DataTypes;
 
-internal enum WacomPenHoveringState : byte
+public enum WacomPenHoveringState : byte
 {
 	Nothing = 0,
 	HoveringFar = 32,

@@ -16,7 +16,7 @@ internal static class RawInputDevices
 		return count;
 	}
 
-	public static unsafe int GetRawInputDevices(Span<RAWINPUTDEVICELIST> rawInputDevices)
+	public static unsafe int WriteRawInputDevicesToSpan(Span<RAWINPUTDEVICELIST> rawInputDevices)
 	{
 		var count = rawInputDevices.Length;
 		fixed (RAWINPUTDEVICELIST* rawInputDevicesPtr = rawInputDevices)
@@ -33,7 +33,7 @@ internal static class RawInputDevices
 	{
 		var count = GetRawInputDeviceCount();
 		var rawInputDevices = new RAWINPUTDEVICELIST[count].AsSpan();
-		count = GetRawInputDevices(rawInputDevices);
+		count = WriteRawInputDevicesToSpan(rawInputDevices);
 		return rawInputDevices[..count];
 	}
 
