@@ -96,9 +96,9 @@ internal sealed class WacomPenState
 			Z = 1.0f - (penHovering.HoverDistance / WACOM_MAX_DEPTH),
 		};
 
-		if (PenIsTouching)
+		if (PenIsTouching || PenButton1State)
 		{
-			if (PenIsTouchingChanged)
+			if (PenIsTouchingChanged || PenButton1StateChanged)
 			{
 				_passedDragThreshold = false;
 				_penStartedTouchingPosition = TruePosition;
@@ -121,11 +121,17 @@ internal sealed class WacomPenState
 				LeftAtPosition = TruePosition;
 				HasLeft = true;
 			}
+
 			return;
 		}
 		else if (HasLeft)
 		{
 			HasLeft = false;
+		}
+
+		if (PenButton0State)
+		{
+			return;
 		}
 
 		Position = TruePosition;

@@ -17,12 +17,10 @@ while (wacomPenDevice.TryReadMessage(ref message))
 {
 	wacomPenState.MessageUpdate(ref message);
 
-	if (message.MessageType is not WacomMessageType.PenHovering)
+	if (message.MessageType is WacomMessageType.PenHovering)
 	{
-		continue;
+		SendMouseInput(wacomPenState);
 	}
-
-	SendMouseInput(wacomPenState);
 }
 
 static unsafe void SendMouseInput(WacomPenState penState)
