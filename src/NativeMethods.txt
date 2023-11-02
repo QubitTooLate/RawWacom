@@ -5,21 +5,9 @@ GetRawInputDeviceInfo
 
 CreateFile
 
-ReadFile
-
-WriteFile
-
 RID_DEVICE_INFO
 
-WaitForSingleObject
-
-GetOverlappedResult
-
-CreateEvent
-
 GetSystemMetrics
-
-mouse_event
 
 GetCurrentProcessId
 

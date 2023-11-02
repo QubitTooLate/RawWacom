@@ -5,11 +5,11 @@ using Windows.Win32.System.Threading;
 
 namespace Qtl.RawWacom;
 
-internal struct Process : IDisposable
+internal readonly struct EfficientProcess : IDisposable
 {
 	private readonly HANDLE _handle;
 
-	public Process()
+	public EfficientProcess()
 	{
 		var id = Native.GetCurrentProcessId();
 		_handle = Native.OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_SET_INFORMATION, false, id);

@@ -6,7 +6,7 @@ using Qtl.RawWacom.DataTypes;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 
-using var process = new Process();
+using var process = new EfficientProcess();
 process.SetEfficiencyMode();
 
 using var wacomPenDevice = WacomTabletDevice.GetWacomTabletDevice(1);
