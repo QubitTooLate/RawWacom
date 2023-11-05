@@ -5,7 +5,7 @@ using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Qtl.RawWacom;
 
-internal sealed class WacomPenState
+internal sealed class WacomPenStateTracker
 {
 	private const float WACOM_MAX_WIDTH = 7600.0f;
 	private const float WACOM_MAX_HEIGHT = 4750.0f;
@@ -16,11 +16,12 @@ internal sealed class WacomPenState
 
 	private readonly float _ratio;
 
-	private bool _penWasTouching;
+	private BooleanStateTracker _penTouchingStateTracker;
+	private BooleanStateTracker _penButton0StateTracker;
+	private BooleanStateTracker _penButton1StateTracker;
+
 	private bool _passedDragThreshold;
 	private Vector3 _penStartedTouchingPosition;
-	private bool _penButton0StateWasTrue;
-	private bool _penButton1StateWasTrue;
 
 	public Vector3 Position { get; private set; }
 
@@ -28,23 +29,23 @@ internal sealed class WacomPenState
 
 	public float Pressure { get; private set; }
 
-	public bool PenIsTouching { get; private set; }
+	public bool PenIsTouching => _penTouchingStateTracker.State;
 
-	public bool PenIsTouchingChanged { get; private set; }
+	public bool PenIsTouchingChanged => _penTouchingStateTracker.StateChanged;
 
-	public bool PenButton0State { get; private set; }
+	public bool PenButton0State => _penButton0StateTracker.State;
 
-	public bool PenButton0StateChanged { get; private set; }
+	public bool PenButton0StateChanged => _penButton0StateTracker.StateChanged;
 
-	public bool PenButton1State { get; private set; }
+	public bool PenButton1State => _penButton1StateTracker.State;
 
-	public bool PenButton1StateChanged { get; private set; }
+	public bool PenButton1StateChanged => _penButton1StateTracker.StateChanged;
 
 	public Vector3 LeftAtPosition { get; private set; }
 
 	public bool HasLeft { get; private set; }
 
-	public WacomPenState()
+	public WacomPenStateTracker()
 	{
 		var screenWidth = Native.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
 		var screenHeight = Native.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
@@ -64,13 +65,8 @@ internal sealed class WacomPenState
 
 	private void UpdateButtons(ref WacomPenHovering penHovering)
 	{
-		_penButton0StateWasTrue = PenButton0State;
-		PenButton0State = penHovering.PenHoveringState is WacomPenHoveringState.PenButton0 or WacomPenHoveringState.PenButton0Touching;
-		PenButton0StateChanged = PenButton0State == !_penButton0StateWasTrue;
-
-		_penButton1StateWasTrue = PenButton1State;
-		PenButton1State = penHovering.PenHoveringState is WacomPenHoveringState.PenButton1 or WacomPenHoveringState.PenButton1Touching;
-		PenButton1StateChanged = PenButton1State == !_penButton1StateWasTrue;
+		_penButton0StateTracker.UpdateState(penHovering.PenHoveringState is WacomPenHoveringState.PenButton0 or WacomPenHoveringState.PenButton0Touching);
+		_penButton1StateTracker.UpdateState(penHovering.PenHoveringState is WacomPenHoveringState.PenButton1 or WacomPenHoveringState.PenButton1Touching);
 	}
 
 	private void UpdatePressure(ref WacomPenHovering penHovering)
@@ -82,9 +78,7 @@ internal sealed class WacomPenState
 
 		Pressure = penHovering.Pressure / WACOM_MAX_PRESSURE;
 
-		_penWasTouching = PenIsTouching;
-		PenIsTouching = Pressure >= WACOM_PRESSURE_TOUCH_THRESHOLD;
-		PenIsTouchingChanged = PenIsTouching == !_penWasTouching;
+		_penTouchingStateTracker.UpdateState(Pressure >= WACOM_PRESSURE_TOUCH_THRESHOLD);
 	}
 
 	private void UpdatePosition(ref WacomPenHovering penHovering)
@@ -96,9 +90,9 @@ internal sealed class WacomPenState
 			Z = 1.0f - (penHovering.HoverDistance / WACOM_MAX_DEPTH),
 		};
 
-		if (PenIsTouching || PenButton1State)
+		if (_penTouchingStateTracker.State || _penButton1StateTracker.State)
 		{
-			if (PenIsTouchingChanged || PenButton1StateChanged)
+			if (_penTouchingStateTracker.StateChanged || _penTouchingStateTracker.StateChanged)
 			{
 				_passedDragThreshold = false;
 				_penStartedTouchingPosition = TruePosition;
@@ -129,7 +123,7 @@ internal sealed class WacomPenState
 			HasLeft = false;
 		}
 
-		if (PenButton0State)
+		if (_penButton0StateTracker.State)
 		{
 			return;
 		}
