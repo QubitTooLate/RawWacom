@@ -4,6 +4,7 @@
 using System.Threading;
 using Qtl.RawWacom;
 using Qtl.RawWacom.DataTypes;
+using Qtl.Snippets;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 
@@ -13,8 +14,8 @@ if (!isSingleInstance)
 	return;
 }
 
-using var process = new EfficientProcess();
-process.SetEfficiencyMode();
+using var processInformation = new ProcessInformation();
+_ = processInformation.SetEfficiencyMode();
 
 using var wacomPenDevice = WacomTabletDevice.GetWacomTabletDevice(1);
 var wacomPenState = new WacomPenStateTracker();
