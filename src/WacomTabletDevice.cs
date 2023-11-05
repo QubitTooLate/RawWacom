@@ -1,10 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.Versioning;
 using Qtl.RawWacom.DataTypes;
 using Windows.Win32.UI.Input;
 
 namespace Qtl.RawWacom;
 
+[SupportedOSPlatform("windows8.0")]
 public sealed class WacomTabletDevice : IDisposable
 {
 	private const int ERROR_DEVICE_NOT_CONNECTED = -2147023729;

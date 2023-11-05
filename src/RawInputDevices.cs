@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Runtime.Versioning;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input;
 
+[SupportedOSPlatform("windows8.0")]
 internal static class RawInputDevices
 {
 	public static unsafe int GetRawInputDeviceCount()

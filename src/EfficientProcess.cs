@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Runtime.Versioning;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Threading;
 
 namespace Qtl.RawWacom;
 
+[SupportedOSPlatform("windows8.0")]
 internal readonly struct EfficientProcess : IDisposable
 {
 	private readonly HANDLE _handle;
