@@ -9,14 +9,4 @@ RID_DEVICE_INFO
 
 GetSystemMetrics
 
-GetCurrentProcessId
-
-OpenProcess
-
-SetPriorityClass
-
-SetProcessInformation
-
-PROCESS_POWER_THROTTLING_STATE
-
 SendInput

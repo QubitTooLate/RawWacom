@@ -1,10 +1,12 @@
 ﻿using System.Numerics;
+using System.Runtime.Versioning;
 using Qtl.RawWacom.DataTypes;
 using Windows.Win32;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Qtl.RawWacom;
 
+[SupportedOSPlatform("windows5.0")]
 internal sealed class WacomPenStateTracker
 {
 	private const float WACOM_MAX_WIDTH = 7600.0f;

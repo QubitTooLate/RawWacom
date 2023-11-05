@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.Versioning;
 using Microsoft.Win32.SafeHandles;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -6,6 +7,7 @@ using Windows.Win32.Storage.FileSystem;
 
 namespace Qtl.RawWacom;
 
+[SupportedOSPlatform("windows5.1.2600")]
 public static class DeviceFile
 {
 	public static unsafe FileStream OpenRead(string deviceName)

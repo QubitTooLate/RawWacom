@@ -1,12 +1,19 @@
 ﻿
 // TODO: add tablet buttons
 
+using System;
 using System.Threading;
 using Qtl.RawWacom;
 using Qtl.RawWacom.DataTypes;
 using Qtl.Snippets;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
+
+if (!OperatingSystem.IsWindowsVersionAtLeast(8))
+{
+	Console.WriteLine("The RawWacom library is not supported on your platform.");
+	return;
+}
 
 using var singletonMutex = new Mutex(true, "0355C7C5-0302-4439-BCB9-F47EC236EFBC", out var isSingleInstance);
 if (!isSingleInstance)
