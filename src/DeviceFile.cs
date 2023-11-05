@@ -7,7 +7,7 @@ using Windows.Win32.Storage.FileSystem;
 
 namespace Qtl.RawWacom;
 
-[SupportedOSPlatform("windows8.0")]
+[SupportedOSPlatform("windows5.1.2600")]
 public static class DeviceFile
 {
 	public static unsafe FileStream OpenRead(string deviceName)

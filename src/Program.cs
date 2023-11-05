@@ -9,30 +9,34 @@ using Qtl.Snippets;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 
-if (OperatingSystem.IsWindowsVersionAtLeast(8))
+if (!OperatingSystem.IsWindowsVersionAtLeast(8))
 {
-	using var singletonMutex = new Mutex(true, "0355C7C5-0302-4439-BCB9-F47EC236EFBC", out var isSingleInstance);
+	Console.WriteLine("The RawWacom library is not supported on your platform.");
+	return;
+}
+
+using var singletonMutex = new Mutex(true, "0355C7C5-0302-4439-BCB9-F47EC236EFBC", out var isSingleInstance);
 if (!isSingleInstance)
 {
 	return;
 }
 
 using var processInformation = new ProcessInformation();
-	_ = _ = processInformation.SetEfficiencyMode();
+_ = processInformation.SetEfficiencyMode();
 
 using var wacomPenDevice = WacomTabletDevice.GetWacomTabletDevice(1);
 var wacomPenState = new WacomPenStateTracker();
 
-	var message = default(WacomMessage);
-	while (wacomPenDevice.TryReadMessage(ref message))
-	{
-		wacomPenState.MessageUpdate(ref message);
+var message = default(WacomMessage);
+while (wacomPenDevice.TryReadMessage(ref message))
+{
+	wacomPenState.MessageUpdate(ref message);
 
-		if (message.MessageType is WacomMessageType.PenHovering)
-		{
-			SendMouseInput(wacomPenState);
-		}
+	if (message.MessageType is WacomMessageType.PenHovering)
+	{
+		SendMouseInput(wacomPenState);
 	}
+}
 
 return;
 
@@ -75,10 +79,5 @@ static unsafe void SendMouseInput(WacomPenStateTracker penState)
 		}
 	};
 
-		_ = Native.SendInput(1, &input, sizeof(INPUT));
-	}
-}
-else
-{
-	Console.WriteLine("The RawWacom library is not supported on your platform.");
+	_ = Native.SendInput(1, &input, sizeof(INPUT));
 }

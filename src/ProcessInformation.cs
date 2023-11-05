@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace Qtl.Snippets;
 
+[SupportedOSPlatform("windows8.0")]
 internal readonly partial struct ProcessInformation : IDisposable
 {
 	private readonly IntPtr _processHandle;
@@ -48,16 +50,24 @@ internal readonly partial struct ProcessInformation : IDisposable
 	private const int PROCESS_POWER_THROTTLING_EXECUTION_SPEED = 1;
 
 	[LibraryImport(LIBRARY)]
+	[DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+	[SupportedOSPlatform("windows5.1.2600")]
 	private static partial int GetCurrentProcessId();
 
 	[LibraryImport(LIBRARY)]
+	[DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+	[SupportedOSPlatform("windows5.1.2600")]
 	private static partial IntPtr OpenProcess(int desiredAccess, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, int processId);
 
 	[LibraryImport(LIBRARY)]
+	[DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+	[SupportedOSPlatform("windows5.1.2600")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool SetPriorityClass(IntPtr processHandle, int priorityClass);
 
 	[LibraryImport(LIBRARY)]
+	[DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+	[SupportedOSPlatform("windows8.0")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool SetProcessInformation(IntPtr processHandle, int processInformationClass, ref PROCESS_POWER_THROTTLING_STATE powerThrottlingState, int size);
 
@@ -73,6 +83,8 @@ internal readonly partial struct ProcessInformation : IDisposable
 	}
 
 	[LibraryImport(LIBRARY)]
+	[DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+	[SupportedOSPlatform("windows5.0")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool CloseHandle(IntPtr handle);
 }
