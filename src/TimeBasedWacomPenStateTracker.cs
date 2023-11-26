@@ -1,68 +1,49 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.Versioning;
 using Qtl.RawWacom.DataTypes;
-using Windows.Win32;
-using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Qtl.RawWacom;
 
 [SupportedOSPlatform("windows5.0")]
-internal sealed class WacomPenStateTracker : IWacomPenStateTracker
+internal sealed class TimeBasedWacomPenStateTracker : IWacomPenStateTracker
 {
 	private const float WACOM_MAX_WIDTH = 7600.0f;
 	private const float WACOM_MAX_HEIGHT = 4750.0f;
 	private const float WACOM_MAX_DEPTH = 255.0f;
 	private const float WACOM_MAX_PRESSURE = 255.0f;
 	private const float WACOM_PRESSURE_TOUCH_THRESHOLD = 0.01f;
-	private const float PREVENT_DRAG_THRESHOLD = 0.025f;
-
-	private readonly float _ratio;
+	private const double SECONDS_TIMEOUT = 0.2;
 
 	private BooleanStateTracker _penTouchingStateTracker;
 	private BooleanStateTracker _penButton0StateTracker;
 	private BooleanStateTracker _penButton1StateTracker;
 
-	private bool _passedDragThreshold;
-	private Vector3 _penStartedTouchingPosition;
+	private long _penIsTouchingChangedTimestamp = 0;
+	private long _timestamp;
+	private long _penButton0StateChangedTimestamp;
+	private long _penButton1StateChangedTimestamp;
 
 	public Vector3 Position { get; private set; }
-
 	public Vector3 TruePosition { get; private set; }
-
 	public float Pressure { get; private set; }
-
 	public bool PenIsTouching => _penTouchingStateTracker.State;
-
 	public bool PenIsTouchingChanged => _penTouchingStateTracker.StateChanged;
-
 	public bool PenButton0State => _penButton0StateTracker.State;
-
 	public bool PenButton0StateChanged => _penButton0StateTracker.StateChanged;
-
 	public bool PenButton1State => _penButton1StateTracker.State;
-
 	public bool PenButton1StateChanged => _penButton1StateTracker.StateChanged;
-
 	public Vector3 LeftAtPosition { get; private set; }
-
 	public bool HasLeft { get; private set; }
-
-	public bool HasUpdated => true;
-
-	public bool PositionChanged => true;
-
-	public WacomPenStateTracker()
-	{
-		var screenWidth = Native.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
-		var screenHeight = Native.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
-		_ratio = (float)screenWidth / screenHeight;
-	}
+	public bool HasUpdated => PenIsTouchingChanged || PenButton0StateChanged || PenButton1StateChanged || PositionChanged;
+	public bool PositionChanged { get; private set; }
 
 	public void MessageUpdate(ref WacomMessage message)
 	{
 		if (message.MessageType is WacomMessageType.PenHovering)
 		{
 			ref var penHovering = ref message.PenHovering;
+			UpdateTimestamp();
 			UpdatePosition(ref penHovering);
 			UpdatePressure(ref penHovering);
 			UpdateButtons(ref penHovering);
@@ -89,30 +70,13 @@ internal sealed class WacomPenStateTracker : IWacomPenStateTracker
 
 	private void UpdatePosition(ref WacomPenHovering penHovering)
 	{
+		PositionChanged = false;
 		TruePosition = new Vector3
 		{
 			X = penHovering.X / WACOM_MAX_WIDTH,
 			Y = penHovering.Y / WACOM_MAX_HEIGHT,
 			Z = 1.0f - (penHovering.HoverDistance / WACOM_MAX_DEPTH),
 		};
-
-		if (_penTouchingStateTracker.State || _penButton1StateTracker.State)
-		{
-			if (_penTouchingStateTracker.StateChanged || _penTouchingStateTracker.StateChanged)
-			{
-				_passedDragThreshold = false;
-				_penStartedTouchingPosition = TruePosition;
-			}
-
-			if (!_passedDragThreshold)
-			{
-				_passedDragThreshold = (TruePosition - _penStartedTouchingPosition).Length() > PREVENT_DRAG_THRESHOLD;
-				if (!_passedDragThreshold)
-				{
-					return;
-				}
-			}
-		}
 
 		if (TruePosition.Z >= 1.0f)
 		{
@@ -129,11 +93,33 @@ internal sealed class WacomPenStateTracker : IWacomPenStateTracker
 			HasLeft = false;
 		}
 
-		if (_penButton0StateTracker.State)
+		if (_penTouchingStateTracker.StateChanged)
+		{
+			_penIsTouchingChangedTimestamp = _penTouchingStateTracker.State ? GetTimestamp() : 0;
+		}
+
+		if (_penButton0StateTracker.StateChanged)
+		{
+			_penButton0StateChangedTimestamp = _penButton0StateTracker.State ? GetTimestamp() : 0;
+		}
+
+		if (_penButton1StateTracker.StateChanged)
+		{
+			_penButton1StateChangedTimestamp = _penButton1StateTracker.State ? GetTimestamp() : 0;
+		}
+
+		if (HasNotPassedTimeout(_penIsTouchingChangedTimestamp) ||
+			HasNotPassedTimeout(_penButton0StateChangedTimestamp) ||
+			HasNotPassedTimeout(_penButton1StateChangedTimestamp))
 		{
 			return;
 		}
 
+		PositionChanged = true;
 		Position = TruePosition;
 	}
+
+	private void UpdateTimestamp() => _timestamp = Stopwatch.GetTimestamp();
+	private long GetTimestamp() => _timestamp;
+	private bool HasNotPassedTimeout(long timestamp) => Stopwatch.GetElapsedTime(timestamp).TotalSeconds < SECONDS_TIMEOUT;
 }

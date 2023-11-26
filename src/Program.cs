@@ -25,7 +25,7 @@ using var processInformation = new ProcessInformation();
 _ = processInformation.SetEfficiencyMode();
 
 using var wacomPenDevice = WacomTabletDevice.GetWacomTabletDevice(1);
-var wacomPenState = new WacomPenStateTracker();
+var wacomPenState = new TimeBasedWacomPenStateTracker();
 
 var message = default(WacomMessage);
 while (wacomPenDevice.TryReadMessage(ref message))
@@ -40,8 +40,13 @@ while (wacomPenDevice.TryReadMessage(ref message))
 
 return;
 
-static unsafe void SendMouseInput(WacomPenStateTracker penState)
+unsafe void SendMouseInput(IWacomPenStateTracker penState)
 {
+	if (!penState.HasUpdated)
+	{
+		return;
+	}
+
 	var flags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
 
 	if (penState.PenIsTouchingChanged)
