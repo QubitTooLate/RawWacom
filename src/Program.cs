@@ -47,7 +47,10 @@ unsafe void SendMouseInput(IWacomPenStateTracker penState)
 		return;
 	}
 
-	var flags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
+	var flags =
+		MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE |
+		MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE |
+		MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL;
 
 	if (penState.PenIsTouchingChanged)
 	{
@@ -79,6 +82,7 @@ unsafe void SendMouseInput(IWacomPenStateTracker penState)
 			{
 				dx = (int)(penState.Position.X * ushort.MaxValue),
 				dy = (int)(penState.Position.Y * ushort.MaxValue),
+				mouseData = (uint)(penState.ScrollDistance),
 				dwFlags = flags
 			}
 		}

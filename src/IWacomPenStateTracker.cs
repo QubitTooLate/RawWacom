@@ -19,4 +19,5 @@ internal interface IWacomPenStateTracker
 	void MessageUpdate(ref WacomMessage message);
 	bool HasUpdated { get; }
 	bool PositionChanged { get; }
+	float ScrollDistance { get; }
 }

@@ -7,7 +7,7 @@ using Qtl.RawWacom.DataTypes;
 namespace Qtl.RawWacom;
 
 [SupportedOSPlatform("windows5.0")]
-internal sealed class TimeBasedWacomPenStateTracker : IWacomPenStateTracker
+internal sealed class FixedMoveTimeBasedWacomPenStateTracker : IWacomPenStateTracker
 {
 	private const float WACOM_MAX_WIDTH = 7600.0f;
 	private const float WACOM_MAX_HEIGHT = 4750.0f;
@@ -20,13 +20,10 @@ internal sealed class TimeBasedWacomPenStateTracker : IWacomPenStateTracker
 	private BooleanStateTracker _penButton0StateTracker;
 	private BooleanStateTracker _penButton1StateTracker;
 
-	private long _penIsTouchingChangedTimestamp;
+	private long _penIsTouchingChangedTimestamp = 0;
 	private long _timestamp;
 	private long _penButton0StateChangedTimestamp;
-	private Vector3 _startScrollPosition;
-	private bool _virtualButton1State;
-	private bool _virtualButton1StateChanged;
-	private int _virtualStateStep;
+	private long _penButton1StateChangedTimestamp;
 
 	public Vector3 Position { get; private set; }
 	public Vector3 TruePosition { get; private set; }
@@ -35,17 +32,14 @@ internal sealed class TimeBasedWacomPenStateTracker : IWacomPenStateTracker
 	public bool PenIsTouchingChanged => _penTouchingStateTracker.StateChanged;
 	public bool PenButton0State => _penButton0StateTracker.State;
 	public bool PenButton0StateChanged => _penButton0StateTracker.StateChanged;
-	public bool PenButton1State => _virtualButton1State;
-	public bool PenButton1StateChanged => _virtualButton1StateChanged;
+	public bool PenButton1State => _penButton1StateTracker.State;
+	public bool PenButton1StateChanged => _penButton1StateTracker.StateChanged;
 	public Vector3 LeftAtPosition { get; private set; }
 	public bool HasLeft { get; private set; }
-	public bool HasUpdated =>
-		PenIsTouchingChanged ||
-		PenButton0StateChanged ||
-		PenButton1StateChanged ||
-		PositionChanged;
+	public bool HasUpdated => PenIsTouchingChanged || PenButton0StateChanged || PenButton1StateChanged || PositionChanged;
 	public bool PositionChanged { get; private set; }
-	public float ScrollDistance => _startScrollPosition.Y == 0.0f ? 0.0f : (TruePosition - _startScrollPosition).Y * -100.0f;
+
+	public float ScrollDistance => throw new NotImplementedException();
 
 	public void MessageUpdate(ref WacomMessage message)
 	{
@@ -91,7 +85,8 @@ internal sealed class TimeBasedWacomPenStateTracker : IWacomPenStateTracker
 		{
 			if (!HasLeft)
 			{
-				LeftAtPosition = TruePosition;
+				LeftAtPosition = Position;
+				Console.WriteLine(LeftAtPosition);
 				HasLeft = true;
 			}
 
@@ -114,42 +109,20 @@ internal sealed class TimeBasedWacomPenStateTracker : IWacomPenStateTracker
 
 		if (_penButton1StateTracker.StateChanged)
 		{
-			if (_penButton1StateTracker.State)
-			{
-				_virtualStateStep = 0;
-			}
-
-			_startScrollPosition = _penButton1StateTracker.State ? TruePosition : default;
-		}
-
-		_virtualButton1State = _virtualStateStep switch
-		{
-			0 => true,
-			1 => false,
-			2 => true,
-			3 => false,
-			_ => false,
-		};
-
-		_virtualButton1StateChanged = _virtualStateStep switch
-		{
-			>= 0 and < 4 => true,
-			_ => false
-		};
-
-		if (_virtualStateStep < 4)
-		{
-			_virtualStateStep++;
+			_penButton1StateChangedTimestamp = _penButton1StateTracker.State ? GetTimestamp() : 0;
 		}
 
 		if (HasNotPassedTimeout(_penIsTouchingChangedTimestamp) ||
-			HasNotPassedTimeout(_penButton0StateChangedTimestamp))
+			HasNotPassedTimeout(_penButton0StateChangedTimestamp) ||
+			HasNotPassedTimeout(_penButton1StateChangedTimestamp))
 		{
 			return;
 		}
 
 		PositionChanged = true;
-		Position = TruePosition;
+		var z = TruePosition.Z;
+		Position = (TruePosition - LeftAtPosition);
+		Position = new Vector3(Position.X, Position.Y, z);
 	}
 
 	private void UpdateTimestamp() => _timestamp = Stopwatch.GetTimestamp();

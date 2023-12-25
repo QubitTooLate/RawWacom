@@ -51,6 +51,8 @@ internal sealed class WacomPenStateTracker : IWacomPenStateTracker
 
 	public bool PositionChanged => true;
 
+	public float ScrollDistance => throw new System.NotImplementedException();
+
 	public WacomPenStateTracker()
 	{
 		var screenWidth = Native.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
